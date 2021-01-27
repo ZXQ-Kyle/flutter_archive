@@ -24,6 +24,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.charset.Charset
 import java.util.zip.ZipEntry
 import java.util.zip.ZipEntry.DEFLATED
 import java.util.zip.ZipFile
@@ -235,8 +236,13 @@ class FlutterArchivePlugin : FlutterPlugin, MethodCallHandler {
         Log.d(LOG_TAG, "destinationDir.absolutePath: ${destinationDir.absolutePath}")
 
         val uiScope = CoroutineScope(Dispatchers.Main)
+        val sourceZip: ZipFile = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            ZipFile(File(zipFilePath), Charset.forName("GBK"))
+        } else {
+            ZipFileEx(zipFilePath)
+        }
 
-        ZipFileEx(zipFilePath).use { zipFile ->
+        sourceZip.use { zipFile ->
             val entriesCount = zipFile.size().toDouble()
             var currentEntryIndex = 0.0
             for (ze in zipFile.entries()) {
